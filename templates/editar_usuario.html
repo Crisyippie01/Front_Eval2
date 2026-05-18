@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuario{% endblock %}
+
+{% block page_header %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-4 text-center">
+            <i class="fas fa-user-edit text-warning"></i> Editar Usuario
+        </h1>
+        <p class="text-center text-muted">Modifica los datos del usuario seleccionado</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <!-- Tarjeta del formulario -->
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-edit"></i> Editar Datos de Usuario
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Información del usuario actual -->
+                <div class="alert alert-info mb-3">
+                    <small class="mb-0">
+                        <i class="fas fa-info-circle"></i> 
+                        Editando usuario ID: <strong>{{ usuario.id }}</strong>
+                    </small>
+                </div>
+
+                <!-- Formulario de edición de usuario -->
+                <form method="POST" action="{{ url_for('editar_usuario', usuario_id=usuario.id) }}" id="editarUsuarioForm">
+                    <!-- Campo Nombre -->
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">
+                            <i class="fas fa-user"></i> Nombre Completo
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="nombre" 
+                               name="nombre" 
+                               value="{{ usuario.nombre }}"
+                               placeholder="Ej: Juan Pérez"
+                               required
+                               maxlength="100">
+                        <div class="form-text">
+                            Ingresa el nombre completo del usuario (máximo 100 caracteres)
+                        </div>
+                    </div>
+
+                    <!-- Campo Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope"></i> Correo Electrónico
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="email" 
+                               name="email" 
+                               value="{{ usuario.email }}"
+                               placeholder="Ej: juan@ejemplo.com"
+                               required
+                               maxlength="150">
+                        <div class="form-text">
+                            Ingresa una dirección de correo válida
+                        </div>
+                    </div>
+
+                    <!-- Campo Edad -->
+                    <div class="mb-4">
+                        <label for="edad" class="form-label">
+                            <i class="fas fa-birthday-cake"></i> Edad
+                            <small class="text-muted">(opcional)</small>
+                        </label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="edad" 
+                               name="edad" 
+                               value="{{ usuario.edad if usuario.edad else '' }}"
+                               placeholder="Ej: 25"
+                               min="1"
+                               max="150">
+                        <div class="form-text">
+                            Ingresa la edad del usuario (opcional)
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <!-- Botón Cancelar -->
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                        
+                        <!-- Botón Actualizar -->
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Actualizar Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tarjeta de información del usuario -->
+        <div class="card mt-3 bg-light">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-info-circle text-info"></i> Datos Actuales
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>ID:</strong> {{ usuario.id }}
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>Nombre:</strong> {{ usuario.nombre }}
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>Email:</strong> {{ usuario.email }}
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>Edad:</strong> 
+                            {% if usuario.edad %}
+                                {{ usuario.edad }} años
+                            {% else %}
+                                No especificada
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de advertencia -->
+        <div class="card mt-3 border-warning">
+            <div class="card-body">
+                <h6 class="card-title text-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Advertencia
+                </h6>
+                <small class="text-muted">
+                    Al hacer clic en "Actualizar Usuario", los cambios se guardarán inmediatamente 
+                    y estarán disponibles para todos los usuarios del sistema.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editarUsuarioForm');
+    const nombreInput = document.getElementById('nombre');
+    const emailInput = document.getElementById('email');
+    const edadInput = document.getElementById('edad');
+
+    // Guardar valores originales para detectar cambios
+    const valoresOriginales = {
+        nombre: nombreInput.value,
+        email: emailInput.value,
+        edad: edadInput.value
+    };
+
+    // Validación del formulario antes de enviar
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        let errorMessage = '';
+
+        // Validar nombre (no vacío y mínimo 2 caracteres)
+        if (nombreInput.value.trim().length < 2) {
+            errorMessage = 'El nombre debe tener al menos 2 caracteres';
+            isValid = false;
+        }
+
+        // Validar email (formato básico)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailInput.value)) {
+            errorMessage = 'Por favor, ingresa un email válido';
+            isValid = false;
+        }
+
+        // Validar edad (si se proporciona)
+        if (edadInput.value) {
+            const edad = parseInt(edadInput.value);
+            if (edad < 1 || edad > 150) {
+                errorMessage = 'La edad debe estar entre 1 y 150 años';
+                isValid = false;
+            }
+        }
+
+        // Verificar si hay cambios
+        const hayCambios = (
+            nombreInput.value !== valoresOriginales.nombre ||
+            emailInput.value !== valoresOriginales.email ||
+            edadInput.value !== valoresOriginales.edad
+        );
+
+        if (!hayCambios) {
+            errorMessage = 'No se han detectado cambios en los datos';
+            isValid = false;
+        }
+
+        // Mostrar mensaje de error si hay problemas
+        if (!isValid) {
+            e.preventDefault();
+            alert(errorMessage);
+        }
+    });
+
+    // Limpiar mensaje de error cuando el usuario empieza a escribir
+    [nombreInput, emailInput, edadInput].forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+
+    // Formatear automáticamente el email a minúsculas
+    emailInput.addEventListener('blur', function() {
+        this.value = this.value.toLowerCase();
+    });
+
+    // Advertencia si el usuario intenta salir con cambios sin guardar
+    let hayCambiosSinGuardar = false;
+    
+    // Detectar cambios en los campos
+    [nombreInput, emailInput, edadInput].forEach(input => {
+        input.addEventListener('change', function() {
+            hayCambiosSinGuardar = (
+                nombreInput.value !== valoresOriginales.nombre ||
+                emailInput.value !== valoresOriginales.email ||
+                edadInput.value !== valoresOriginales.edad
+            );
+        });
+    });
+
+    // Advertencia al intentar salir de la página
+    window.addEventListener('beforeunload', function(e) {
+        if (hayCambiosSinGuardar) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+});
+</script>
+{% endblock %}
